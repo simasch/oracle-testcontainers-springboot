@@ -1,68 +1,67 @@
 # Oracle DB with Spring Boot and Testcontainers
 
-This project demonstrates how to use separate database users for DDL and DML using Oracle DB with Spring Boot and
-Testcontainers. Using a distinct database user to create the database objects and an application user with
-only DML (Data Manipulation Language) rights provides several benefits, particularly in terms of security, isolation,
-and maintainability. Here is a breakdown of the benefits:
+## Separating DDL and DML Users
 
-### 1. Enhanced Security
+This project shows how to use separate database users for DDL and DML when working with Oracle DB, Spring Boot, and
+Testcontainers. Having one user for creating database objects (DDL) and another user for application-level data
+operations (DML) has many benefits. It improves security, keeps things organized, and makes maintenance easier. Here's a
+detailed explanation:
 
-- **Minimize Permissions for Application User**: By restricting the application user's permissions to only what it
-  needs (SELECT, INSERT, UPDATE, DELETE), the risk of accidental or malicious actions (e.g., schema modifications or
-  data loss) is significantly reduced.
-- **Protection of Schema**: The application user cannot drop or alter schema objects (tables, views, stored procedures),
-  ensuring that critical database structures are not modified or deleted inadvertently or intentionally.
+### 1. Better Security
 
-### 2. Role Separation and Least Privilege Principle
+- **Limit Permissions for the Application User**: The application user only has permissions for tasks like SELECT,
+  INSERT, UPDATE, and DELETE. This reduces the risk of mistakes or malicious actions, such as deleting or changing the
+  database structure.
+- **Protect the Schema**: The application user cannot change or delete important database structures like tables, views,
+  or stored procedures. This ensures the schema stays safe.
 
-- Using a separate database owner adheres to the principle of "least privilege," where each user is granted only the
-  permissions required to perform their function.
-- The database owner manages schema changes (like table creation or alterations), while the application user focuses
-  solely on data access and manipulation.
+### 2. Clear Role Separation
 
-### 3. Simplified Maintenance and Schema Versioning
+- Using separate users follows the "least privilege" principle. Each user only gets the permissions they need.
+- The database owner handles schema changes (like creating or altering tables), while the application user only works
+  with the data.
 
-- **Database Schema Updates**: The application layer does not need elevated privileges for upgrades or schema
-  migrations, simplifying the deployment process by keeping schema changes controlled by a designated owner or a
-  migration tool like Liquibase or Flyway.
-- **Version Control**: Schema changes can be better managed and audited since only the database owner user will be used
-  for such operations.
+### 3. Easier Maintenance and Schema Management
 
-### 4. Prevention of Data Corruption
+- **Simpler Schema Updates**: The application doesn’t need extra privileges for database updates or migrations. These
+  tasks can be handled by tools like Liquibase or Flyway using the database owner.
+- **Better Version Control**: Since only the database owner makes schema changes, these updates are easier to track and
+  audit.
 
-- Restricting the application's user from modifying schema objects (e.g., truncating tables, dropping constraints)
-  minimizes the risk of data integrity issues or invalid database states during runtime.
+### 4. Prevent Data Issues
 
-### 5. Test Environment Isolation
+- Limiting the application user’s permissions prevents problems like accidentally deleting tables or modifying
+  constraints, which could cause data integrity issues.
 
-- In environments like those using **Testcontainers**, the owner user can pre-define the schema setup for tests while
-  the application user is used to simulate how the actual application interacts with the database. This provides a
-  realistic and production-like scenario in tests.
+### 5. Testing with Isolation
+
+- In test environments like **Testcontainers**, the schema can be set up by the owner user. The application user then
+  interacts with the database in a way that mimics real-world usage. This makes the tests more realistic.
 
 ### 6. Auditing and Accountability
 
-- By separating users, we can easily track and audit actions performed by the application user versus schema
-  creation or maintenance. This enhances accountability and simplifies troubleshooting.
+- Separating users makes it easier to track who did what. For example, you can see whether a schema change or a data
+  update caused an issue.
 
-### 7. Ease of Migration and Testing
+### 7. Flexible Testing and Migration
 
-- When using tools such as **Testcontainers**, the separate user roles allow for flexibility:
-    - The DDL user can be used by the containerized environment during test setup (e.g., schema initialization).
-    - The DML user can simulate the actual application behavior, ensuring the separation of concerns.
+- Tools like **Testcontainers** benefit from separate users:
+    - The DDL user sets up the schema during test initialization.
+    - The DML user behaves like the application, focusing only on data operations.
 
-### 8. Reduced Attack Surface
+### 8. Smaller Attack Surface
 
-- If the application user credentials are compromised, attackers would only have access to the DML operations set,
-  reducing the impact. They would not be able to alter schema objects or perform privileged database actions.
+- If the application user’s credentials are leaked, the damage is limited to DML operations. Attackers cannot modify the
+  schema or perform other high-level database actions.
 
-### Example in this Project
+### Example Setup in This Project
 
-- `DEMOOWNER`:
-    - Used during schema setup by Testcontainers and migrations with Flyway. It has full rights to modify the schema.
+- `DEMOOWNER`:  
+  This user sets up the schema during tests using **Testcontainers**. It has full rights to create tables, add
+  constraints, and perform other schema-related tasks.
 
-- `DEMOUSER`:
-    - Used by the application itself. It operates strictly within the boundaries of predefined DML permissions, reducing
-      the risks to the schema and structural integrity of the database.
+- `DEMOUSER`:  
+  The application uses this user for all data operations. It only has DML permissions, keeping the schema and database
+  structure safe.
 
-For convenience the `DEMOUSER` has synonyms to not have to prefix the table names with the schema name.
-
+To simplify queries, `DEMOUSER` has synonyms, so you don’t need to prefix table names with the schema name.
