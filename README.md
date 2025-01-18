@@ -24,9 +24,9 @@ and maintainability. Here is a breakdown of the benefits:
 
 - **Database Schema Updates**: The application layer does not need elevated privileges for upgrades or schema
   migrations, simplifying the deployment process by keeping schema changes controlled by a designated owner or a
-  migration tool (e.g., Liquibase or Flyway).
-- **Version Control**: Schema changes can be better managed and audited since only the database owner user (e.g.,
-  `DEMOOWNER`) will be used for such operations.
+  migration tool like Liquibase or Flyway.
+- **Version Control**: Schema changes can be better managed and audited since only the database owner user will be used
+  for such operations.
 
 ### 4. Prevention of Data Corruption
 
@@ -35,37 +35,34 @@ and maintainability. Here is a breakdown of the benefits:
 
 ### 5. Test Environment Isolation
 
-- In environments like those using **Testcontainers**, the `DEMOOWNER` can pre-define the schema setup for tests while
-  the `DEMOUSER` is used to simulate how the actual application interacts with the database. This provides a realistic
-  and production-like scenario in tests.
+- In environments like those using **Testcontainers**, the owner user can pre-define the schema setup for tests while
+  the application user is used to simulate how the actual application interacts with the database. This provides a
+  realistic and production-like scenario in tests.
 
 ### 6. Auditing and Accountability
 
-- By separating users, we can easily track and audit actions performed by the application (`DEMOUSER`) versus schema
-  creation or maintenance (`DEMOOWNER`). This enhances accountability and simplifies troubleshooting.
+- By separating users, we can easily track and audit actions performed by the application user versus schema
+  creation or maintenance. This enhances accountability and simplifies troubleshooting.
 
 ### 7. Ease of Migration and Testing
 
 - When using tools such as **Testcontainers**, the separate user roles allow for flexibility:
-    - The `DEMOOWNER` user can be used by the containerized environment during test setup (e.g., schema initialization).
-    - The `DEMOUSER` can simulate the actual application behavior, ensuring the separation of concerns.
+    - The DDL user can be used by the containerized environment during test setup (e.g., schema initialization).
+    - The DML user can simulate the actual application behavior, ensuring the separation of concerns.
 
 ### 8. Reduced Attack Surface
 
-- If the application user credentials (`DEMOUSER`) are compromised, attackers would only have access to the DML
-  operations set, reducing the impact. They would not be able to alter schema objects or perform privileged database
-  actions.
+- If the application user credentials are compromised, attackers would only have access to the DML operations set,
+  reducing the impact. They would not be able to alter schema objects or perform privileged database actions.
 
-### Example in Context
+### Example in this Project
 
 - `DEMOOWNER`:
-    - Used during schema setup by `Testcontainers`. It has full rights to modify the schema (create tables, define
-      constraints, etc.).
+    - Used during schema setup by Testcontainers and migrations with Flyway. It has full rights to modify the schema.
 
 - `DEMOUSER`:
     - Used by the application itself. It operates strictly within the boundaries of predefined DML permissions, reducing
       the risks to the schema and structural integrity of the database.
 
-By following this approach, we achieve a cleaner separation of responsibilities between the schema-design phase and
-runtime application behavior, which is a widely accepted best practice in secure and scalable database design.
+For convenience the `DEMOUSER` has synonyms to not have to prefix the table names with the schema name.
 
